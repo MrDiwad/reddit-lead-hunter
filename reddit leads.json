@@ -1,0 +1,215 @@
+{
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "hours"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.3,
+      "position": [
+        0,
+        0
+      ],
+      "id": "51013ce5-3566-4dd7-a9a6-ce21b544b51d",
+      "name": "Schedule Trigger"
+    },
+    {
+      "parameters": {
+        "url": "https://www.reddit.com/r/automation/new.rss",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.rssFeedRead",
+      "typeVersion": 1.2,
+      "position": [
+        208,
+        -16
+      ],
+      "id": "a0f6af23-446c-4460-879a-6a50ae0a17f0",
+      "name": "RSS Read"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.content }}",
+        "options": {
+          "systemMessage": "Jesteś ekspertem od Lead Generation. Twoim zadaniem jest analiza postów z Reddita. Jeśli użytkownik wyraża chęć zakupu, szuka wykonawcy lub ma problem techniczny, który można rozwiązać automatyzacją, oznacz go jako 'LEAD'. Jeśli to tylko dyskusja lub news, oznacz jako 'IGNORE'. Odpowiadaj w formacie JSON: { \"status\": \"LEAD\" lub \"IGNORE\", \"reason\": \"krótkie uzasadnienie\" }."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        624,
+        -16
+      ],
+      "id": "4c943c40-da0a-441e-9530-98e7f73800ac",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "model": "llama-3.3-70b-versatile",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGroq",
+      "typeVersion": 1,
+      "position": [
+        368,
+        224
+      ],
+      "id": "419df5b8-449e-461d-85c9-71f5d7ac944b",
+      "name": "Groq Chat Model",
+      "credentials": {
+        "groqApi": {
+          "id": "hiyBfpwMYKL1QT5M",
+          "name": "Groq account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "databasePage",
+        "databaseId": {
+          "__rl": true,
+          "value": "YOUR ID",
+          "mode": "list",
+          "cachedResultName": "YOUR ID",
+          "cachedResultUrl": "YOUR URL"
+        },
+        "title": "Reddit Leads",
+        "propertiesUi": {
+          "propertyValues": [
+            {
+              "key": "Name|title",
+              "title": "={{ $('Filter').item.json.title }}"
+            },
+            {
+              "key": "URL|url",
+              "urlValue": "={{ $('Filter').item.json.link }}"
+            },
+            {
+              "key": "Reason|rich_text",
+              "textContent": "={{ $json.output }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.notion",
+      "typeVersion": 2.2,
+      "position": [
+        960,
+        -16
+      ],
+      "id": "f985d9b0-1f26-4b86-87a0-50a3f3c68ca8",
+      "name": "Create a database page",
+      "credentials": {
+        "notionApi": {
+          "id": "V0dVrBeQzN0x5KRS",
+          "name": "Notion account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": false,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "35b1afe0-b316-4922-8295-e86b1e78df8d",
+              "leftValue": "={{ $json.content }}",
+              "rightValue": "how to|hiring|problem|solve|idea|what|Trouble",
+              "operator": {
+                "type": "string",
+                "operation": "regex"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {
+          "ignoreCase": true
+        }
+      },
+      "type": "n8n-nodes-base.filter",
+      "typeVersion": 2.3,
+      "position": [
+        432,
+        0
+      ],
+      "id": "2c8d0ea6-e98b-4946-b4f2-074fc1bd9d5a",
+      "name": "Filter"
+    }
+  ],
+  "connections": {
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "RSS Read",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "RSS Read": {
+      "main": [
+        [
+          {
+            "node": "Filter",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Create a database page",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Groq Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Filter": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "pinData": {},
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "b9b0543f63dd236a95a1802f22dfd4cb7253a9235bd3d9616ed9acfd8e9d2a84"
+  }
+}
