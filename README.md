@@ -20,3 +20,5 @@ AI/LLM: Groq (Llama 3)
 Database: Notion
 
 Data Source: Reddit RSS
+
+<img width="1431" height="630" alt="image" src="https://github.com/user-attachments/assets/ea8b5ac1-1477-46b3-bd6b-565d3cc48e2e" />
